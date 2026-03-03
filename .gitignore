@@ -1,0 +1,57 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Rider
+.idea/
+
+# NuGet
+*.nupkg
+packages/
+.nuget/
+
+# Visual Studio Code
+.vscode/
+
+# ASP.NET / app settings
+appsettings.Development.json
+appsettings.Local.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-wheel-metadata/
+
+# Logs
+*.log
+logs/
+
+# Test results / coverage
+TestResults/
+coverage/
+*.coverage
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# Database files
+*.db
+*.sqlite
+
+# Misc
+*.bak
+*.tmp
