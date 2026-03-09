@@ -48,12 +48,12 @@ jobs:
         with:
           name: .net-app
       
-      - name: Login to Azure
-        uses: azure/login@v2
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3ss
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_532F145A802646AF9E9257E56514D56E }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_02BCA3D85C884E85A8D0C2610F121C10 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_16808FA90AE94093BAB655E06E90A4FD }}
+          app-name: InclusiveCodeAPI-Plan
+          tpublish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: .
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
