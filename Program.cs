@@ -1,17 +1,15 @@
 using InclusiveCode.API.Data;
 using InclusiveCode.API.Services;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 
-// Register DbContext only when a connection string is provided.
+// Register DbContext using PostgreSQL (Supabase)
 var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 if (!string.IsNullOrEmpty(defaultConnection))
 {
@@ -19,12 +17,41 @@ if (!string.IsNullOrEmpty(defaultConnection))
         options.UseNpgsql(defaultConnection));
 }
 
+// JWT Authentication
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+
+if (!string.IsNullOrEmpty(jwtKey))
+{
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = "Bearer";
+        options.DefaultChallengeScheme = "Bearer";
+    })
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
+}
+
+// Token service
+builder.Services.AddScoped<TokenService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<PythonAnalyzerService>();
 builder.Services.AddHttpClient<PythonAnalyzerService>(client =>
 {
-    var baseUrl = builder.Configuration["PythonAnalyzer:DevUrl"];
+    var baseUrl = builder.Configuration["PythonAnalyzer:BaseUrl"];
     if (!string.IsNullOrEmpty(baseUrl))
     {
         client.BaseAddress = new Uri(baseUrl);
@@ -33,13 +60,26 @@ builder.Services.AddHttpClient<PythonAnalyzerService>(client =>
 
 var app = builder.Build();
 
-// Enable OpenAPI/Swagger in all environments (production included).
-app.MapOpenApi();
+// Apply migrations at startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
+
+// Health debug connect
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    Console.WriteLine(dbContext.Database.CanConnect() ? "Conectado ao banco com sucesso!" : "Falha ao conectar ao banco!");
+}
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
