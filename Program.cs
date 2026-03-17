@@ -9,13 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Register DbContext using PostgreSQL (Supabase)
-var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection");
-if (!string.IsNullOrEmpty(defaultConnection))
-{
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseNpgsql(defaultConnection));
-}
+// Register DbContext using SQLite (local database)
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=inclusive_code.db"));
 
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"];
@@ -43,12 +39,10 @@ if (!string.IsNullOrEmpty(jwtKey))
     });
 }
 
-// Token service
+// Services
 builder.Services.AddScoped<TokenService>();
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<PythonAnalyzerService>();
+
 builder.Services.AddHttpClient<PythonAnalyzerService>(client =>
 {
     var baseUrl = builder.Configuration["PythonAnalyzer:ProdUrl"];
@@ -58,22 +52,51 @@ builder.Services.AddHttpClient<PythonAnalyzerService>(client =>
     }
 });
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
-// Apply migrations at startup
+
+// ?? Apply migrations safely
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate();
+
+    try
+    {
+        dbContext.Database.Migrate();
+        Console.WriteLine("Migrations aplicadas com sucesso!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Erro ao aplicar migrations:");
+        Console.WriteLine(ex.Message);
+    }
 }
 
-// Health debug connect
+
+// ?? Test connection safely
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    Console.WriteLine(dbContext.Database.CanConnect() ? "Conectado ao banco com sucesso!" : "Falha ao conectar ao banco!");
+
+    try
+    {
+        var canConnect = dbContext.Database.CanConnect();
+        Console.WriteLine(canConnect
+            ? "Conectado ao banco com sucesso!"
+            : "Falha ao conectar ao banco!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Erro ao testar conexão:");
+        Console.WriteLine(ex.Message);
+    }
 }
 
+
+// Middlewares
 app.UseSwagger();
 app.UseSwaggerUI();
 

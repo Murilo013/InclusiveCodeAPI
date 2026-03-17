@@ -24,6 +24,11 @@ packages/
 appsettings.Development.json
 appsettings.Local.json
 
+# SQLite databases (local)
+*.db
+*.db-shm
+*.db-wal
+
 # Python
 __pycache__/
 *.py[cod]
