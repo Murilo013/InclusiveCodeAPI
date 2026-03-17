@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using InclusiveCode.API.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace InclusiveCode.API.Data
 {
@@ -8,5 +9,7 @@ namespace InclusiveCode.API.Data
         : base(options)
         {
         }
+
+        public DbSet<User> Users { get; set; }
     }
 }
