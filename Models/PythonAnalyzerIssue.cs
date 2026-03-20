@@ -21,5 +21,8 @@ namespace InclusiveCode.API.Models
 
         [JsonPropertyName("improvement")]
         public string Improvement { get; set; } = string.Empty;
+
+        [JsonPropertyName("evidence_urls")]
+        public List<string> EvidenceUrls { get; set; } = new();
     }
 }
