@@ -55,7 +55,7 @@ namespace InclusiveCode.API.Controllers
             }
 
             // TODO: Em um cenário real, retorne um Token JWT aqui
-            return Ok(new { message = "Login realizado com sucesso!", username = user.Username });
+            return Ok(new { message = "Login realizado com sucesso!", username = user.Username, UserId = user.Id });
         }
 
         [HttpPost("forgot-password")]

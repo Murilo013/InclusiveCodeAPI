@@ -55,6 +55,12 @@ builder.Services.AddHttpClient<PythonAnalyzerService>(client =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Configure HTTPS redirection port for local development
+builder.Services.AddHttpsRedirection(options =>
+{
+    options.HttpsPort = 5;
+});
+
 var app = builder.Build();
 
 
