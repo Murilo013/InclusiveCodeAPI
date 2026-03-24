@@ -53,17 +53,58 @@ namespace InclusiveCode.API.Controllers
                 }
             }
 
+            // Calculate score before saving and sending
+            var issuesList = result.Issues ?? new List<PythonAnalyzerIssue>();
+            var fileGroups = new Dictionary<string, int>();
+
+            foreach (var item in issuesList)
+            {
+                var filename = string.IsNullOrWhiteSpace(item.Filename) ? "arquivo-desconhecido" : item.Filename;
+                var lineValue = item.Line.HasValue && item.Line.Value > 0 ? item.Line.Value : 0;
+
+                if (fileGroups.TryGetValue(filename, out var currentMax))
+                {
+                    fileGroups[filename] = Math.Max(currentMax, lineValue);
+                }
+                else
+                {
+                    fileGroups[filename] = lineValue;
+                }
+            }
+
+            int fileCount = Math.Max(fileGroups.Count, 1);
+            int estimatedTotalLines = fileGroups.Values.Sum(maxLine => maxLine > 0 ? Math.Max(maxLine, 80) : 120);
+
+            int issuesCount = issuesList.Count;
+            double divisor = Math.Max((double)estimatedTotalLines / 100.0, 1.0);
+            double issuesPer100Lines = issuesCount / divisor;
+            double issuesPerFile = (double)issuesCount / fileCount;
+
+            double penalty = (issuesPer100Lines * 6.0) + (issuesPerFile * 12.0) + (Math.Max(0, issuesCount - 2) * 2.0);
+
+            int score = (int)Math.Round(Math.Clamp(100.0 - penalty, 0, 100));
+
+            string label;
+            if (score >= 85) label = "INCLUSIVO";
+            else if (score >= 70) label = "BOA INCLUSAO";
+            else if (score >= 50) label = "FALTA INCLUSAO";
+            else if (score >= 30) label = "POUCO INCLUSIVO";
+            else label = "NADA INCLUSIVO";
+
+            result.Score = score;
+            result.ScoreLabel = label;
+
             // Save analysis result for history
             try
             {
-                var raw = !string.IsNullOrEmpty(result.RawResponse)
-                    ? result.RawResponse
-                    : System.Text.Json.JsonSerializer.Serialize(result);
+                var raw = JsonSerializer.Serialize(result);
 
                 var analysis = new AnalysisResult
                 {
                     RepoUrl = request.Url ?? string.Empty,
-                    RawJson = raw
+                    RawJson = raw,
+                    Score = score,
+                    ScoreLabel = label
                 };
 
                 // Use user id provided by front-end when available (check UserId or Id)
@@ -116,6 +157,8 @@ namespace InclusiveCode.API.Controllers
                     Id = a.Id,
                     RepoUrl = a.RepoUrl,
                     RawJson = a.RawJson,
+                    Score = a.Score,
+                    ScoreLabel = a.ScoreLabel,
                     CreatedAt = a.CreatedAt
                 })
                 .ToListAsync();

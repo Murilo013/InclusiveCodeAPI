@@ -52,14 +52,21 @@ builder.Services.AddHttpClient<PythonAnalyzerService>(client =>
     }
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy => 
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Configure HTTPS redirection port for local development
-builder.Services.AddHttpsRedirection(options =>
-{
-    options.HttpsPort = 5;
-});
+// builder.Services.AddHttpsRedirection(options => ...);
 
 var app = builder.Build();
 
@@ -105,6 +112,8 @@ using (var scope = app.Services.CreateScope())
 // Middlewares
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 

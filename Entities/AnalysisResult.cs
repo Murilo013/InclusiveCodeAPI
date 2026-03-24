@@ -17,6 +17,10 @@ namespace InclusiveCode.API.Entities
         // Raw JSON returned by the analyzer
         public string RawJson { get; set; } = string.Empty;
 
+        public int Score { get; set; }
+
+        public string ScoreLabel { get; set; } = string.Empty;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
