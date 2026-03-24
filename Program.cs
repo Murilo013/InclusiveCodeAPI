@@ -115,7 +115,11 @@ app.UseSwaggerUI();
 
 app.UseCors("AllowAll");
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirection when not in Development to avoid redirect warnings
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

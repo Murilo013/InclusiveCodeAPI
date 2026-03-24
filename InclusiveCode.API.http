@@ -1,5 +1,58 @@
 @InclusiveCode.API_HostAddress = http://localhost:5283
 
+### Register User
+POST {{InclusiveCode.API_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+###
+
+### Login User
+POST {{InclusiveCode.API_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+###
+
+### Analyze Repository (replace 1 with actual userId)
+POST {{InclusiveCode.API_HostAddress}}/api/analyze
+Content-Type: application/json
+
+{
+  "url": "https://github.com/microsoft/vscode",
+  "id": 1
+}
+
+###
+
+### Get User History (replace 1 with actual userId)
+GET {{InclusiveCode.API_HostAddress}}/api/analyze/history/me?userId=1
+Accept: application/json
+
+###
+
+### Forgot Password
+POST {{InclusiveCode.API_HostAddress}}/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "oldPassword": "password123",
+  "newPassword": "newpassword456",
+  "newPasswordConfirmation": "newpassword456"
+}
+
+###
+
 GET {{InclusiveCode.API_HostAddress}}/weatherforecast/
 Accept: application/json
 
