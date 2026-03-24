@@ -45,7 +45,7 @@ builder.Services.AddScoped<PythonAnalyzerService>();
 
 builder.Services.AddHttpClient<PythonAnalyzerService>(client =>
 {
-    var baseUrl = builder.Configuration["PythonAnalyzer:DevUrl"];
+    var baseUrl = builder.Configuration["PythonAnalyzer:ProdUrl"];
     if (!string.IsNullOrEmpty(baseUrl))
     {
         client.BaseAddress = new Uri(baseUrl);
