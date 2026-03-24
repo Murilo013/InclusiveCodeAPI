@@ -11,5 +11,6 @@ namespace InclusiveCode.API.Data
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<AnalysisResult> AnalysisResults { get; set; }
     }
 }

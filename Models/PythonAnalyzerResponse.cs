@@ -14,6 +14,12 @@ namespace InclusiveCode.API.Models
         [JsonPropertyName("issues")]
         public List<PythonAnalyzerIssue> Issues { get; set; } = new();
 
+        [JsonPropertyName("score")]
+        public int Score { get; set; }
+
+        [JsonPropertyName("scoreLabel")]
+        public string ScoreLabel { get; set; } = string.Empty;
+
         // Raw JSON returned by the analyzer. Not part of the mapped response model.
         [JsonIgnore]
         public string? RawResponse { get; set; }

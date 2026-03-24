@@ -45,15 +45,28 @@ builder.Services.AddScoped<PythonAnalyzerService>();
 
 builder.Services.AddHttpClient<PythonAnalyzerService>(client =>
 {
-    var baseUrl = builder.Configuration["PythonAnalyzer:ProdUrl"];
+    var baseUrl = builder.Configuration["PythonAnalyzer:DevUrl"];
     if (!string.IsNullOrEmpty(baseUrl))
     {
         client.BaseAddress = new Uri(baseUrl);
     }
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy => 
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Configure HTTPS redirection port for local development
+// builder.Services.AddHttpsRedirection(options => ...);
 
 var app = builder.Build();
 
@@ -100,7 +113,13 @@ using (var scope = app.Services.CreateScope())
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+
+// Only use HTTPS redirection when not in Development to avoid redirect warnings
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
