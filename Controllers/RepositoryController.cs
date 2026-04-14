@@ -24,6 +24,28 @@ namespace InclusiveCode.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Analyze([FromBody] RepoRequest request)
         {
+            User user = null;
+            if (request.UserId.HasValue)
+            {
+                user = await _context.Users.FindAsync(request.UserId.Value);
+            }
+            else if (request.Id.HasValue)
+            {
+                user = await _context.Users.FindAsync(request.Id.Value);
+            }
+            else if (!string.IsNullOrEmpty(request.Email))
+            {
+                user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            }
+
+            if (user != null)
+            {
+                if (!user.Pro && user.AnalisesCount >= 5)
+                {
+                    return BadRequest(new { message = "Limite de análises atingido. Crie uma conta Pro para ter análises ilimitadas." });
+                }
+            }
+
             var result = await _pythonService.RunAnalysis(request.Url);
 
             if (result == null)
@@ -108,21 +130,11 @@ namespace InclusiveCode.API.Controllers
                 };
 
                 // Use user id provided by front-end when available (check UserId or Id)
-                if (request.UserId.HasValue)
+                if (user != null)
                 {
-                    analysis.UserId = request.UserId.Value;
-                }
-                else if (request.Id.HasValue)
-                {
-                    analysis.UserId = request.Id.Value;
-                }
-                else if (!string.IsNullOrEmpty(request.Email))
-                {
-                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-                    if (user != null)
-                    {
-                        analysis.UserId = user.Id;
-                    }
+                    analysis.UserId = user.Id;
+                    user.AnalisesCount++;
+                    _context.Users.Update(user);
                 }
 
                 _context.AnalysisResults.Add(analysis);
