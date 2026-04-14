@@ -33,6 +33,7 @@ namespace InclusiveCode.API.Controllers
             {
                 Username = request.Username,
                 Email = request.Email,
+                Verificado = request.Verificado,
                 // TODO: Adicionar um Hash de senha aqui (Ex: BCrypt.Net) antes de salvar
                 PasswordHash = request.Password 
             };
@@ -55,7 +56,52 @@ namespace InclusiveCode.API.Controllers
             }
 
             // TODO: Em um cenário real, retorne um Token JWT aqui
-            return Ok(new { message = "Login realizado com sucesso!", username = user.Username, UserId = user.Id });
+            return Ok(new { 
+                message = "Login realizado com sucesso!", 
+                username = user.Username, 
+                UserId = user.Id,
+                Email = user.Email,
+                Verificado = user.Verificado,
+                AnalisesCount = user.AnalisesCount,
+                Pro = user.Pro
+            });
+        }
+
+        [HttpGet("user/{email}")]
+        public async Task<IActionResult> GetUserByEmail(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+            {
+                return NotFound(new { message = "Usuário não encontrado." });
+            }
+
+            return Ok(new
+            {
+                Email = user.Email,
+                Nome = user.Username, // Retornando Username mapping para Nome
+                Verificado = user.Verificado,
+                AnalisesCount = user.AnalisesCount,
+                Pro = user.Pro
+            });
+        }
+
+        [HttpPost("user/{email}/upgrade")]
+        public async Task<IActionResult> UpgradeToPro(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+            {
+                return NotFound(new { message = "Usuário não encontrado." });
+            }
+
+            user.Pro = true;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Conta atualizada para Pro com sucesso!", pro = user.Pro });
         }
 
         [HttpPost("forgot-password")]
